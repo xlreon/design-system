@@ -108,7 +108,7 @@ export const Avatar = (props: AvatarProps) => {
       <span data-test="DesignSystem-Avatar" {...baseProps} className={classes} >
         {initials && (
           <Text
-            weight="medium"
+            weight="strong"
             appearance={'white'}
             className={ContentClass}
           >
@@ -118,7 +118,7 @@ export const Avatar = (props: AvatarProps) => {
         {!initials && (
           <Icon
             data-test="DesignSystem-AvatarIcon"
-            name="home"
+            name="person"
             size={size === 'regular' ? 16 : 12}
             appearance={'white'}
             className={IconClass}
