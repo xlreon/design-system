@@ -90,6 +90,8 @@ export interface PopperWrapperProps {
 
 interface PopperWrapperState {
   zIndex?: number;
+  animationKeyframe: string;
+  isOpen: boolean;
 }
 
 export class PopperWrapper extends React.Component<PopperWrapperProps, PopperWrapperState> {
@@ -112,7 +114,7 @@ export class PopperWrapper extends React.Component<PopperWrapperProps, PopperWra
   constructor(props: PopperWrapperProps) {
     super(props);
 
-    this.state = {};
+    this.state = { animationKeyframe: '', isOpen: false };
 
     this.hoverableDelay = 100;
     this.offsetMapping = {
@@ -150,6 +152,15 @@ export class PopperWrapper extends React.Component<PopperWrapperProps, PopperWra
         });
       }
     }
+    // if (this.popupRef.current && prevProps.open !== this.props.open) {
+    //   this.setState({
+    //     animationKeyframe: this.currentKeyframe.popperOpen,
+    //   });
+    // } else {
+    //   this.setState({
+    //     animationKeyframe: this.currentKeyframe.popperClose,
+    //   });
+    // }
   }
 
   componentWillUnmount() {
@@ -293,12 +304,31 @@ export class PopperWrapper extends React.Component<PopperWrapperProps, PopperWra
 
   getPopperChildren({ ref, style, placement, outOfBoundaries }: PopperChildrenProps) {
     const { offset, children } = this.props;
-    const { zIndex } = this.state;
+    const { zIndex, animationKeyframe } = this.state;
     const newStyle = offset ? this.getUpdatedStyle(style, placement, offset) : style;
+    let popperOpen = '';
+    // let popperClose = '';
+    let transformStyles = '';
+    if (this.popupRef.current) {
+      transformStyles = this.popupRef.current.style.getPropertyValue('transform');
+      if (transformStyles && !animationKeyframe) {
+        popperOpen = `@keyframes popperOpen { from { transform: ${transformStyles} scaleY(0); } to { transform: ${transformStyles} scaleY(1); } }`;
+        // popperClose = `@keyframes popperClose { from { transform: ${transformStyles} scaleY(1); } to { transform: ${transformStyles} scaleY(0); } }`;
+        this.setState({
+          animationKeyframe: popperOpen,
+        });
+      }
+    }
+    const popperAnimationStyles = {
+      transformOrigin: 'top left',
+      // animation: `${isOpen ? 'popperClose' : 'popperOpen'} 2s cubic-bezier(0, 0, 0.38, 0.9)`,
+      animation: 'popperOpen 2s cubic-bezier(0, 0, 0.38, 0.9)',
+    };
 
     const element = React.cloneElement(children, {
       ref,
       style: {
+        ...popperAnimationStyles,
         ...newStyle,
         zIndex,
       },
@@ -312,9 +342,11 @@ export class PopperWrapper extends React.Component<PopperWrapperProps, PopperWra
 
   render() {
     const { placement, appendToBody, open, hide, boundaryElement } = this.props;
+    const { animationKeyframe } = this.state;
 
     return (
       <Manager>
+        <style>{animationKeyframe}</style>
         <Reference innerRef={this.triggerRef}>{({ ref }) => this.getTriggerElement(ref)}</Reference>
         {open &&
           appendToBody &&
